@@ -20,125 +20,125 @@
                 <span>清晰</span>
             </div>
             <div class="row">
-                <div class="col-md-4 mb-3">
+                <div class="col-md-4 mb-3" v-for='item,index of members' :key='index'>
                     <div class="card h-100">
                         <div class="position-absolute" style="top: 20px; right: 20px">
                             <button type="button" class="btn btn-outline-danger rounded-pill">
                   <i class="bi bi-heart fs-5"></i>
                 </button>
                         </div>
-                        <img src="https://randomuser.me/api/portraits/men/24.jpg" class="card-img-top" />
+                        <img :src="item.picture.large" class="card-img-top" />
                         <div class="card-body">
                             <h5 class="card-title">
-                                Monsieur Jérôme Clement( <span>👨</span> )
+                                {{item.fullname}}( <span>{{`${item.gender==='male' ? '👨' : '👩'}`}}</span> )
                             </h5>
                             <p class="card-text">
-                                Email：<a href="mailto:jerome.clement@example.com">jerome.clement@example.com</a
-                  >
-                </p>
-                <p class="card-text">
-                  Phone: <a href="tel:077 857 10 09">077 857 10 09</a>
+                                Email：<a :href=`mailto:${item.email}`>{{item.email}}</a>
                             </p>
                             <p class="card-text">
-                                Cell: <a href="tel:075 491 99 85">075 491 99 85</a>
+                                Phone: <a :href=`tel:${item.phone}`>{{item.phone}}</a>
                             </p>
-                            <p class="card-text">City: Châtillon (Ju)</p>
-                            <p class="card-text">State: Graubünden</p>
-                            <p class="card-text">Country: Switzerland</p>
-                            <p class="card-text">Postcode: 6560</p>
+                            <p class="card-text">
+                                Cell: <a :href=`tel:${item.cell}`>{{item.cell}}</a>
+                            </p>
+                            <p class="card-text">City: {{item.location.city}}</p>
+                            <p class="card-text">State: {{item.location.state}}</p>
+                            <p class="card-text">Country: {{item.location.country}}</p>
+                            <p class="card-text">Postcode: {{item.location.postcode}}</p>
                             <p>
-                                Address：<a href="https://www.google.com.tw/maps/search/Châtillon (Ju)Graubünden" target="_blank">Châtillon (Ju) Graubünden Switzerland 6560</a
-                  >
-                </p>
-                <p class="card-text">
-                  description: Bombay, Calcutta, Madras, New Delhi
-                </p>
-                <p class="card-text">
-                  <small class="text-muted"
-                    >dob：1965-03-08T06:47:08.901Z</small
-                  >
-                </p>
-                <p class="card-text">
-                  <small class="text-muted"
-                    >registered：2016-03-08T06:04:55.159Z</small
-                  >
-                </p>
-                <iframe
-                  width="100%"
-                  height="300"
-                  frameborder="0"
-                  scrolling="no"
-                  marginheight="0"
-                  marginwidth="0"
-                  src="https://maps.google.com.tw/maps?f=q&amp;hl=zh-TW&amp;geocode=&amp;q=-50.7880,-14.1043&amp;z=10&amp;output=embed"
-                ></iframe>
-              </div>
+                                Address：<a :href=`https://www.google.com.tw/maps/search/${item.location.city+item.location.state}` target="_blank">{{item.address}}</a>
+                            </p>
+                            <p class="card-text">
+                                description: {{item.location.timezone.description}}
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">username：{{item.login.username}}</small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">password：{{item.login.password}}</small>
+                            </p>
+                            <iframe width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" :src=`https://maps.google.com.tw/maps?f=q&amp;hl=zh-TW&amp;geocode=&amp;q=${item.location.coordinates.latitude},${item.location.coordinates.longitude}&amp;z=10&amp;output=embed`></iframe>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8"
-      crossorigin="anonymous"
-    ></script>
-    <script src="https://unpkg.com/vue@next"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.0.1/vue.global.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.js' integrity='sha512-otOZr2EcknK9a5aa3BbMR9XOjYKtxxscwyRHN6zmdXuRfJ5uApkHB7cz1laWk2g8RKLzV9qv/fl3RPwfCuoxHQ==' crossorigin='anonymous'></script>
     <script src="data.js"></script>
     <script>
-      // console.log(results);
-      const req = new Request("https://randomuser.me/api/?results=10",{
-        method:'GET',
-        mode:"cors",
-        credentials:"omit",
-      });
-      const reg = new RegExp(/\D+/gm);
-      const getAbility = {
-        power(item){
-          let tempStr = item.phone.slice(item.phone.length - 5).replace(reg, Math.floor(Math.random() * 10).toString());
-          let sum = tempStr.split('').reduce((acc,cur)=>acc+Number(cur),0);
-          return sum;
-        },
-        agile(item){
-          return item.location.street.number.toString().split('').reduce((acc,cur)=>acc+Number(cur),0);
-        },
-        wisdom(item){
-          return item.login.username.length + item.login.password.length;
-        }
-      };
+        // console.log(results);
+        const reg = new RegExp(/\D+/gm);
+        const getAbility = {
+            power(item) {
+                let tempStr = item.phone.slice(item.phone.length - 5).replace(reg, Math.floor(Math.random() * 10).toString());
+                let sum = tempStr.split('').reduce((acc, cur) => acc + Number(cur), 0);
+                return sum;
+            },
+            agile(item) {
+                return item.location.street.number.toString().split('').reduce((acc, cur) => acc + Number(cur), 0);
+            },
+            wisdom(item) {
+                return item.login.username.length + item.login.password.length;
+            }
+        };
 
-      Vue.createApp({
-        data(){
-          return {
-            data:[],
-            freshtime:0,
-            teamMember:[]
-          }
-        },
-        methods:{
-          freshmember(){
-            console.log('freshmember');
-          }
-        },
-        mounted(){
-          fetch(req).then(function(response){
-            return response.json();
-          }).then(function(j){
-            this.data = j.results.map(item=>{
-              item.ability={
-                power: getAbility.power(item),
-                agile: getAbility.agile(item),
-                wisdom: getAbility.wisdom(item),
-              }
-              return item;
-            });
-            console.log('success connect');
-            console.log(this.data);
-          }).catch(function(err){
-            console.log('connect fail, error message:',err);
-          });
-        }
-      }).mount('#app');
+        const vm = Vue.createApp({
+            name: "team",
+            el: '#app',
+            data() {
+                return {
+                    people: [],
+                    freshtime: 0,
+                    teamMember: []
+                }
+            },
+            methods: {
+                freshmember() {
+                    console.log('freshmember');
+                }
+            },
+            computed: {
+                members: function() {
+                    let temp = this.people.map(item => {
+                        item.fullname = ''.concat(item.name.title, ' ', item.name.first, ' ', item.name.last);
+                        // item.gendericon = `${item.gender==='male' ? '👨' : '👩'}`;
+                        item.address = ''.concat(item.location.city, ' ', item.location.state, ' ',
+                            item.location.country, ' ', item.location.postcode);
+                        return item;
+                    })
+                    return temp;
+                },
+            },
+            watch: {
+                people: {
+                    handler: function(newVal, oldVal) {
+                        console.log('people change');
+                    }
+                }
+            },
+            created() {
+                let path = "https://randomuser.me/api/?results=10";
+                let self = this;
+                axios.get(path).then(function(res) {
+                    self.people = res.data.results.map(item => {
+                        item.ability = {
+                            power: getAbility.power(item),
+                            agile: getAbility.agile(item),
+                            wisdom: getAbility.wisdom(item),
+                        }
+                        return item;
+                    });
+                    console.log('success');
+                }).catch(function(err) {
+                    console.log('connect fail, error message:', err);
+                });
+            }
+        });
+        vm.mount('#app');
     </script>
-  </body>
+</body>
+
 </html>
