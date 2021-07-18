@@ -14,21 +14,21 @@
     <div id="app">
         <div class="container ">
             <div class="my-3">
-                <button type="button" class="btn btn-outline-primary">切換大頭貼解析度</button> 現在圖片解析度：
+                <button type="button" class="btn btn-outline-primary" @mouseup.prev='toggleSize()'>切換大頭貼解析度</button> 現在圖片解析度：
                 <span>清晰</span>
             </div>
             <div class="row h-100">
-                <div class="col-md-6 mb-3" v-for='item,index of members' :key='index'>
-                    <div class="card h-100">
+                <div class="col-md-4" v-for='members,num of colArray' :key='num'>
+                    <div class="card h-31 mb-3" v-for='item,index of members'>
                         <div class="row">
-                            <div :class="`${item.detail ? ' col-6' : ' col-12'}`">
+                            <div :class="col-12">
                                 <div class="position-absolute" style="top: 20px; right: 20px">
                                     <button type="button" class="btn btn-outline-danger rounded-pill">
                                         <i class="bi bi-heart fs-5"></i>
                                     </button>
                                 </div>
-                                <img :src="item.picture.large" class="card-img-top" />
-                                <div class="card-body col-6">
+                                <img :src="status ? item.picture.large : item.picture.medium" class="card-img-top" />
+                                <div class="card-body ">
                                     <h5 class="card-title">
                                         {{item.fullname}}( <span>{{`${item.gender==='male' ? '👨' : '👩'}`}}</span> )
                                     </h5>
@@ -41,31 +41,29 @@
                                     <p class="card-text">
                                         Cell: <a :href=`tel:${item.cell}`>{{item.cell}}</a>
                                     </p>
-                                    <button class="btn btn-primary " type="button" data-bs-toggle="collapse" :data-bs-target=`#collapseInfo${index}` aria-expanded="false" :aria-controls=`collapseInfo${index}` @click='item.detail = !item.detail'>
+                                    <div class="collapse" :id=`collapseInfo${item.id}`>
+                                        <p class="card-text">City: {{item.location.city}}</p>
+                                        <p class="card-text">State: {{item.location.state}}</p>
+                                        <p class="card-text">Country: {{item.location.country}}</p>
+                                        <p class="card-text">Postcode: {{item.location.postcode}}</p>
+                                        <p>
+                                            Address：<a :href=`https://www.google.com.tw/maps/search/${item.location.city+item.location.state}` target="_blank">{{item.address}}</a>
+                                        </p>
+                                        <p>Street: {{item.location.street.number}}</p>
+                                        <p class="card-text">
+                                            description: {{item.location.timezone.description}}
+                                        </p>
+                                        <p class="card-text">
+                                            <small class="text-muted">username：{{item.login.username}}</small>
+                                        </p>
+                                        <p class="card-text">
+                                            <small class="text-muted">password：{{item.login.password}}</small>
+                                        </p>
+                                        <iframe width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" :src=`https://maps.google.com.tw/maps?f=q&amp;hl=zh-TW&amp;geocode=&amp;q=${item.location.coordinates.latitude},${item.location.coordinates.longitude}&amp;z=10&amp;output=embed`></iframe>
+                                    </div>
+                                    <button class="btn btn-primary " type="button" data-bs-toggle="collapse" :data-bs-target=`#collapseInfo${item.id}` aria-expanded="false" :aria-controls=`collapseInfo${item.id}`>
                                         more
                                     </button>
-                                </div>
-                            </div>
-                            <div class="collapse" :class="`${item.detail ? ' col-6' : ' invisible'}`" :id=`collapseInfo${index}`>
-                                <div class="card-body">
-                                    <p class="card-text">City: {{item.location.city}}</p>
-                                    <p class="card-text">State: {{item.location.state}}</p>
-                                    <p class="card-text">Country: {{item.location.country}}</p>
-                                    <p class="card-text">Postcode: {{item.location.postcode}}</p>
-                                    <p>
-                                        Address：<a :href=`https://www.google.com.tw/maps/search/${item.location.city+item.location.state}` target="_blank">{{item.address}}</a>
-                                    </p>
-                                    <p>Street: {{item.location.street.number}}</p>
-                                    <p class="card-text">
-                                        description: {{item.location.timezone.description}}
-                                    </p>
-                                    <p class="card-text">
-                                        <small class="text-muted">username：{{item.login.username}}</small>
-                                    </p>
-                                    <p class="card-text">
-                                        <small class="text-muted">password：{{item.login.password}}</small>
-                                    </p>
-                                    <iframe width="100%" height="300" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" :src=`https://maps.google.com.tw/maps?f=q&amp;hl=zh-TW&amp;geocode=&amp;q=${item.location.coordinates.latitude},${item.location.coordinates.longitude}&amp;z=10&amp;output=embed`></iframe>
                                 </div>
                             </div>
                         </div>
@@ -102,18 +100,23 @@
                 return {
                     people: [],
                     freshtime: 0,
-                    teamMember: []
+                    teamMember: [],
+                    colAmount: 3,
+                    status: true,
+                    isLoading: false
                 }
             },
             methods: {
-                freshmember() {
-                    console.log('freshmember');
+                toggleSize() {
+                    this.status = !this.status
                 }
             },
             computed: {
-                members: function() {
-                    let temp = this.people.splice(0);
-                    let viewData = temp.map(item => {
+                colArray: function() {
+                    let temp = this.people.splice(0),
+                        amount = this.colAmount;
+                    let addData = temp.map((item, id) => {
+                        item.id = id;
                         item.fullname = ''.concat(item.name.title, ' ', item.name.first, ' ', item.name.last);
                         // item.gendericon = `${item.gender==='male' ? '👨' : '👩'}`;
                         item.address = ''.concat(item.location.city, ' ', item.location.state, ' ',
@@ -121,7 +124,16 @@
                         item.detail = false;
                         return item;
                     })
-                    return viewData;
+                    let result = [];
+                    for (let index = 0; index < amount; index++) {
+                        result[index] = [];
+                    }
+                    addData.forEach(function(element, index) {
+                        // result[index % this.colAmount].push(element);
+                        [].push.call(result[index % amount], element);
+                    });
+                    console.log(result);
+                    return result;
                 },
             },
             watch: {
@@ -134,6 +146,7 @@
             created() {
                 let path = "https://randomuser.me/api/?results=9";
                 let self = this;
+                self.isLoading = true
                 axios.get(path).then(function(res) {
                     self.people = res.data.results.map(item => {
                         item.ability = {
@@ -143,6 +156,7 @@
                         }
                         return item;
                     });
+                    self.isLoading = false;
                     console.log('success');
                 }).catch(function(err) {
                     console.log('connect fail, error message:', err);
