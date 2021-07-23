@@ -33,7 +33,7 @@
                         <div class="col-md-12 mt-3">
                             <div class="btn-group w-100">
                                 <div v-for='colset,colindex of keyboard' class="btn-group-vertical w-25" role="group">
-                                    <button v-for='item of colset' type="button" class="btn w-100" :class='`${colindex === 3 ? "btn-primary" : "btn-outline-primary"}`'>
+                                    <button v-for='item of colset' type="button" class="btn w-100" :class='`${colindex === 3 ? "btn-primary" : "btn-outline-primary"}`' @click.prevent='buttonHandler(item.val)'>
                                         {{item.key}}
                                     </button>
                                 </div>
@@ -58,78 +58,166 @@
     <script src="https://unpkg.com/vue@next"></script>
     <script>
         const keyboard = [
-            [{
-                key: 'backspace',
-                val: 'backspace'
-            }, {
-                key: '7',
-                val: 7
-            }, {
-                key: '4',
-                val: 4
-            }, {
-                key: '1',
-                val: 1
-            }, {
-                key: '+/-',
-                val: 'reverse'
-            }],
-            [{
-                key: 'CE',
-                val: 'fullclear'
-            }, {
-                key: '8',
-                val: 8
-            }, {
-                key: '5',
-                val: 5
-            }, {
-                key: '2',
-                val: 2
-            }, {
-                key: '0',
-                val: 0
-            }],
-            [{
-                key: 'C',
-                val: 'clear'
-            }, {
-                key: '9',
-                val: 9
-            }, {
-                key: '6',
-                val: 6
-            }, {
-                key: '3',
-                val: 3
-            }, {
-                key: '.',
-                val: '.'
-            }],
-            [{
-                key: '+',
-                val: 'add'
-            }, {
-                key: '-',
-                val: 'minus'
-            }, {
-                key: '*',
-                val: 'multiply'
-            }, {
-                key: '/',
-                val: 'division'
-            }, {
-                key: '=',
-                val: 'equal'
-            }]
-        ];
+                [{
+                    key: 'backspace',
+                    val: 'backspace'
+                }, {
+                    key: '7',
+                    val: 7
+                }, {
+                    key: '4',
+                    val: 4
+                }, {
+                    key: '1',
+                    val: 1
+                }, {
+                    key: '+/-',
+                    val: 'reverse'
+                }],
+                [{
+                    key: 'CE',
+                    val: 'fullclear'
+                }, {
+                    key: '8',
+                    val: 8
+                }, {
+                    key: '5',
+                    val: 5
+                }, {
+                    key: '2',
+                    val: 2
+                }, {
+                    key: '0',
+                    val: 0
+                }],
+                [{
+                    key: 'C',
+                    val: 'clear'
+                }, {
+                    key: '9',
+                    val: 9
+                }, {
+                    key: '6',
+                    val: 6
+                }, {
+                    key: '3',
+                    val: 3
+                }, {
+                    key: '.',
+                    val: 'dot'
+                }],
+                [{
+                    key: '+',
+                    val: 'add'
+                }, {
+                    key: '-',
+                    val: 'minus'
+                }, {
+                    key: '*',
+                    val: 'multiply'
+                }, {
+                    key: '/',
+                    val: 'division'
+                }, {
+                    key: '=',
+                    val: 'equal'
+                }]
+            ],
+            UIcontroller = function() {
+                let viewstring = '';
+                return {
+                    setstring: function(val) {
+                        viewstring = val;
+                    },
+                    getstring: function() {
+                        return viewstring;
+                    },
+                    pushstring: function(num) {
+                        viewstring = ''.concat(viewstring, num);
+                    },
+                    backspace: function() {
+                        if (viewstring.length === 0) return;
+                        let temp = viewstring.split('');
+                        if (temp[temp.length - 1] === ' ') {
+                            viewstring = viewstring.slice(0, -3);
+                            return;
+                        }
+                        viewstring = viewstring.slice(0, -1);
+                    },
+                    fullclear: function() {
+                        viewstring = '';
+                    },
+                    clear: function() {
+                        let temp = viewstring.split(' ');
+                        temp.length = temp.length - 1;
+                        viewstring = "".concat(temp.join(' '), ' ');
+                    },
+                    reverse: function() {
+                        let temp = viewstring.split(' ');
+                        console.log(temp);
+                        if (!Number(temp[temp.length - 1])) return;
+                        temp[temp.length - 1] *= -1;
+                        viewstring = temp.join(' ');
+                    },
+                    dot: function() {
+                        return;
+                    },
+                    add: function() {
+                        viewstring = ''.concat(viewstring, ' ', '+', ' ');
+                    },
+                    minus: function() {
+                        viewstring = ''.concat(viewstring, ' ', '-', ' ');
+                    },
+                    multiply: function() {
+                        viewstring = ''.concat(viewstring, ' ', '*', ' ');
+                    },
+                    division: function() {
+                        viewstring = ''.concat(viewstring, ' ', '/', ' ');
+                    },
+                    equal: function() {
+                        return;
+                    }
+                }
+            },
+            processor = function() {
+                return {
+                    add: function() {
+                        return
+                    },
+                    minus: function() {
+                        return
+                    },
+                    multiply: function() {
+                        return
+                    },
+                    division: function() {
+                        return
+                    },
+                    equal: function() {
+                        return
+                    }
+                }
+            }
         Vue.createApp({
-            name: 'number computer',
+            name: 'number_computer',
             data() {
                 return {
                     inputCommand: '',
-                    keyboard: keyboard
+                    keyboard: keyboard,
+                    UIcontroller: UIcontroller(),
                 };
+            },
+            methods: {
+                buttonHandler(value) {
+                    console.log(value);
+                    this.UIcontroller.setstring(this.inputCommand);
+                    if (Number(value) || value === 0) {
+                        this.UIcontroller.pushstring(value);
+                    } else {
+                        this.UIcontroller[value]();
+                    }
+                    this.inputCommand = this.UIcontroller.getstring();
+                }
             }
         }).mount('#app');
     </script>
