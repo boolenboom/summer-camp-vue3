@@ -40,12 +40,16 @@
                             </div>
                         </div>
                     </div>
+                    <h4 class="mt-3">{{errLog}}</h4>
                 </div>
                 <div class="col-6">
                     <h5>歷史紀錄</h5>
                     <ul>
-                        <li>
-                            1 + 1 = 2
+                        <li v-for='item,index of history' class="row justify-content-between mt-1">
+                            <div class="col-11">{{item}}</div>
+                            <div class="col-1">
+                                <button type="button" class="btn btn-outline-danger btn-sm w-20" @click.prevent='removeHistory(index)'>X</button>
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -282,8 +286,10 @@
             data() {
                 return {
                     inputCommand: '',
+                    history: [],
                     keyboard: keyboard,
                     UIcontroller: UIcontroller(),
+                    errLog: '',
                 };
             },
             methods: {
@@ -296,6 +302,27 @@
                         this.UIcontroller[value]();
                     }
                     this.inputCommand = this.UIcontroller.getstring();
+                    if (value === 'equal') {
+                        this.history.push(this.UIcontroller.getResult());
+                        this.save2local();
+                    }
+                },
+                save2local() {
+                    let parsed = JSON.stringify(this.history);
+                    localStorage.setItem('history', parsed);
+                },
+                removeHistory(x) {
+                    this.history.splice(x, 1);
+                    this.save2local();
+                },
+            },
+            mounted() {
+                if (localStorage.getItem('history')) {
+                    try {
+                        this.history = JSON.parse(localStorage.getItem('history'));
+                    } catch (error) {
+                        console.log('localStorage fetch fail:', error);
+                    }
                 }
             }
         }).mount('#app');
