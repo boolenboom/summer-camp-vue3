@@ -125,6 +125,10 @@
             ],
             UIcontroller = function() {
                 let viewstring = '';
+                let check = function() {
+                    let temp = viewstring.split('');
+                    if (temp[temp.length - 1] === '.') viewstring = viewstring.slice(0, -1);
+                }
                 return {
                     setstring: function(val) {
                         viewstring = val;
@@ -153,6 +157,7 @@
                         viewstring = "".concat(temp.join(' '), ' ');
                     },
                     reverse: function() {
+                        check();
                         let temp = viewstring.split(' ');
                         console.log(temp);
                         if (!Number(temp[temp.length - 1])) return;
@@ -160,18 +165,26 @@
                         viewstring = temp.join(' ');
                     },
                     dot: function() {
-                        return;
+                        let temp = viewstring.split(' ');
+                        console.log(viewstring);
+                        if (!Number(temp[temp.length - 1]) || !temp[temp.length - 1].toString().indexOf('.')) return;
+                        viewstring = ''.concat(viewstring, '.');
+                        console.log('dot:', viewstring);
                     },
                     add: function() {
+                        check()
                         viewstring = ''.concat(viewstring, ' ', '+', ' ');
                     },
                     minus: function() {
+                        check()
                         viewstring = ''.concat(viewstring, ' ', '-', ' ');
                     },
                     multiply: function() {
+                        check()
                         viewstring = ''.concat(viewstring, ' ', '*', ' ');
                     },
                     division: function() {
+                        check()
                         viewstring = ''.concat(viewstring, ' ', '/', ' ');
                     },
                     equal: function() {
