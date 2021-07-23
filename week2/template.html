@@ -193,12 +193,54 @@
                         viewstring = ''.concat(viewstring, ' ', '/', ' ');
                     },
                     equal: function() {
+                        dotcheck();
+                        operatorcheck();
+                        const proc = processor(viewstring.split(' '));
+                        proc.calculate();
                         return;
                     }
                 }
             },
-            processor = function() {
+            processor = function(input) {
+                const getPriorty = function(op) {
+                        switch (op) {
+                            case "+":
+                            case "-":
+                                return 1;
+                            case "*":
+                            case "/":
+                                return 2;
+                            default:
+                                return 0;
+                        }
+                    },
+                    infix2postfix = function(infix) {
+                        let stack = [],
+                            output = [];
+                        for (const operator of infix) {
+                            const priority = getPriorty(operator);
+                            if (priority > 0) {
+                                while (stack.length > 0) {
+                                    const temp = stack[stack.length - 1];
+                                    if (priority > getPriorty(temp)) break;
+                                    output.push(stack.pop());
+                                }
+                                stack.push(operator);
+                            } else {
+                                output.push(operator);
+                            }
+                        }
+                        while (stack.length > 0) {
+                            output.push(stack.pop());
+                        }
+                        return output;
+                    }
                 return {
+                    calculate: function() {
+                        let postfix = infix2postfix(input);
+                        let handleStack = [];
+                        console.log(postfix);
+                    },
                     add: function() {
                         return
                     },
