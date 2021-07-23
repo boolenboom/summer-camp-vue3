@@ -24,7 +24,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <label for="expression" class="form-label">運算式</label>
-                            <input id="expression" type="text" class="form-control" placeholder="運算式" v-model='inputCommand' />
+                            <input id="expression" type="text" class="form-control form-control-lg text-end" placeholder="運算式" v-model='inputCommand' readonly/>
                         </div>
                         <!-- <div class="col-md-6">
                             <label for="num2" class="form-label">第二個數字</label>
@@ -127,13 +127,40 @@
             UIcontroller = function() {
                 let viewstring = '';
                 let result = '';
+                let errorLog = '';
                 let dotcheck = function() {
                         let temp = viewstring.split('');
                         if (temp[temp.length - 1] === '.') viewstring = viewstring.slice(0, -1);
                     },
                     operatorcheck = function() {
                         let temp = viewstring.split(' ');
-                        if (!Number(temp[temp.length - 1])) viewstring = viewstring.slice(0, -3);
+                        let last = temp[temp.length - 1];
+                        if (last === '') viewstring = viewstring.slice(0, -3);
+                    },
+                    travelcheck = function() {
+                        if (viewstring === '') {
+                            viewstring = '';
+                            errorLog = '請輸入數字';
+                            throw errorLog;
+                        }
+                        let temp = viewstring.split(' ');
+                        temp.reduce((acc, curr) => {
+                            if (acc && Number(curr) === 0) {
+                                viewstring = ''
+                                errorLog = '無法除以零';
+                                throw errorLog;
+                            }
+                            if (curr === '/') {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        })
+                    },
+                    allcheck = function() {
+                        dotcheck();
+                        operatorcheck();
+                        travelcheck();
                     }
                 return {
                     setstring: function(val) {
@@ -143,6 +170,8 @@
                         return viewstring;
                     },
                     pushstring: function(num) {
+                        let temp = viewstring.split(' ');
+                        if (temp[temp.length - 1] === '0') return;
                         viewstring = ''.concat(viewstring, num);
                     },
                     backspace: function() {
@@ -159,6 +188,10 @@
                     },
                     clear: function() {
                         let temp = viewstring.split(' ');
+                        if (temp.length < 2) {
+                            viewstring = '';
+                            return;
+                        }
                         temp.length = temp.length - 1;
                         viewstring = "".concat(temp.join(' '), ' ');
                     },
@@ -171,41 +204,57 @@
                     },
                     dot: function() {
                         let temp = viewstring.split(' ');
-                        if (!Number(temp[temp.length - 1]) || !temp[temp.length - 1].toString().indexOf('.')) return;
+                        let last = temp[temp.length - 1];
+                        if (last === '' || last.toString().indexOf('.') > 0) return;
                         viewstring = ''.concat(viewstring, '.');
                     },
                     add: function() {
                         dotcheck();
                         operatorcheck();
+                        if (viewstring === '') return;
                         viewstring = ''.concat(viewstring, ' ', '+', ' ');
                     },
                     minus: function() {
                         dotcheck();
                         operatorcheck();
+                        if (viewstring === '') return;
                         viewstring = ''.concat(viewstring, ' ', '-', ' ');
                     },
                     multiply: function() {
                         dotcheck();
                         operatorcheck();
+                        if (viewstring === '') return;
                         viewstring = ''.concat(viewstring, ' ', '*', ' ');
                     },
                     division: function() {
                         dotcheck();
                         operatorcheck();
+                        if (viewstring === '') return;
                         viewstring = ''.concat(viewstring, ' ', '/', ' ');
                     },
                     equal: function() {
                         let temp = '';
-                        dotcheck();
-                        operatorcheck();
+
+                        try {
+                            allcheck();
+                        } catch (error) {
+                            console.log(error);
+                        }
+                        if (errorLog !== '') return;
                         const proc = processor(viewstring.split(' '));
                         temp = proc.calculate();
                         console.log(temp);
                         result = viewstring.concat(' = ', temp);
-                        viewstring = temp;
+                        viewstring = temp.toString();
                     },
                     getResult: function() {
                         return result;
+                    },
+                    getError: function() {
+                        return errorLog;
+                    },
+                    initialError: function() {
+                        errorLog = '';
                     }
                 }
             },
@@ -296,13 +345,16 @@
                 buttonHandler(value) {
                     console.log(value);
                     this.UIcontroller.setstring(this.inputCommand);
+                    this.UIcontroller.initialError();
                     if (Number(value) || value === 0) {
                         this.UIcontroller.pushstring(value);
                     } else {
                         this.UIcontroller[value]();
                     }
                     this.inputCommand = this.UIcontroller.getstring();
-                    if (value === 'equal') {
+                    this.errLog = this.UIcontroller.getError();
+                    if (value === 'equal' && this.errLog === '') {
+                        if (this.history.length > 9) this.removeHistory(0);
                         this.history.push(this.UIcontroller.getResult());
                         this.save2local();
                     }
