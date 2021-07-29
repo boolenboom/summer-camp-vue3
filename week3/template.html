@@ -12,59 +12,122 @@
         .completed {
             text-decoration: line-through
         }
+        
+        h1 {
+            font-size: 8rem;
+        }
+        
+        .editbox {
+            opacity: 0;
+            z-index: -1;
+        }
+        
+        .editbox:focus {
+            opacity: 1;
+            z-index: 1;
+        }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <div id="app" class="container my-3">
-            <div class="input-group mb-3">
-                <span class="input-group-text">待辦事項</span>
-                <input type="text" class="form-control" placeholder="準備要做的任務" id="newTodo">
-                <button class="btn btn-primary" type="button" id="addTodo">新增</button>
-            </div>
-            <div class="card text-center">
-                <ul class="list-group list-group-flush text-left" id="todoList">
-                    <li class="list-group-item">
-                        <div class="d-flex">
-                            <div class="form-check">
-                                <div>
-                                    <input id="a" type="checkbox" class="form-check-input">
-                                    <label for="a">代辦事項</label>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-close ms-auto remove">
-                </button>
+        <div id="app" class="container vh-100 mx-auto row">
+            <div class="align-self-center justify-content-center">
+                <div class="row justify-content-center">
+                    <div class="pomodoro text-center">
+                        <div class="title">Pomodoro</div>
+                        <div class="timer">
+                            <h1>13：07</h1>
                         </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="d-flex">
-                            <div class="form-check">
-                                <div>
-                                    <input id="b" type="checkbox" class="form-check-input" checked>
-                                    <label for="b" class="completed">已完成 代辦事項</label>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-close ms-auto remove">
-                </button>
+                        <div class="input-group mb-3 justify-content-center">
+                            <button class="btn btn-primary col-1" type="button">Start</button>
+                            <button class="btn btn-primary col-1" type="button">Pause</button>
+                            <button class="btn btn-primary col-1" type="button">Reset</button>
                         </div>
-                    </li>
-                    <li class="list-group-item">
-                        <div class="d-flex">
-                            <div class="form-check">
-                                <input class="form-control" type="text" placeholder="編輯" />
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <div class="card-footer d-flex justify-content-between">
-                    <span>有 <span id="taskCount">1</span> 筆任務</span>
-                    <div>
-                        <a href="#" class="me-3">全部</a>
-                        <a href="#" class="me-3">未完成</a>
-                        <a href="#" class="me-3">已完成</a>
-                        <a href="#">清除所有任務</a>
                     </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-5 mt-5">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">待辦事項</span>
+                            <input type="text" class="form-control" placeholder="準備要做的任務" id="newTodo">
+                            <button class="btn btn-primary" type="button" id="addTodo">新增</button>
+                        </div>
+                        <div class="card text-center">
+                            <ul class="list-group list-group-flush text-left" id="todoList">
+                                <li class="list-group-item">
+                                    <div class="d-flex">
+                                        <div class="form-check">
+                                            <div>
+                                                <input id="check" type="checkbox" class="form-check-input">
+                                                <label for="a">代辦事項</label>
+                                                <input id="a" type="text" class="editbox" value="代辦事項">
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close ms-auto remove">
+                                        </button>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item list-group-item-secondary">
+                                            <div class="d-flex">
+                                                <div class="form-check">
+                                                    <div>
+                                                        <input id="check" type="checkbox" class="form-check-input">
+                                                        <label for="a">次項目1</label>
+                                                        <input id="a" type="text" class="editbox" value="代辦事項">
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-close ms-auto remove">
+                                                </button>
+                                            </div>
+                                        </li>
+                                        <li class="list-group-item list-group-item-secondary">
+                                            <div class="d-flex">
+                                                <div class="form-check">
+                                                    <div>
+                                                        <input id="check" type="checkbox" class="form-check-input">
+                                                        <label for="a">次項目2</label>
+                                                        <input id="a" type="text" class="editbox" value="代辦事項">
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-close ms-auto remove">
+                                                </button>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="d-flex">
+                                        <div class="form-check">
+                                            <div>
+                                                <input id="b" type="checkbox" class="form-check-input" checked>
+                                                <label for="b" class="completed">已完成 代辦事項</label>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-close ms-auto remove">
+                                        </button>
+                                    </div>
+                                </li>
+                                <li class="list-group-item">
+                                    <div class="d-flex">
+                                        <div class="form-check">
+                                            <input class="form-control" type="text" placeholder="編輯" />
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div class="card-footer d-flex justify-content-between">
+                                <span>有 <span id="taskCount">1</span> 筆任務</span>
+                                <div>
+                                    <a href="#" class="me-3">全部</a>
+                                    <a href="#" class="me-3">未完成</a>
+                                    <a href="#" class="me-3">已完成</a>
+                                    <a href="#">清除所有任務</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
