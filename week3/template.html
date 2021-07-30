@@ -28,6 +28,17 @@
             cursor: default;
         }
         
+        .remove-option {
+            background-color: #fff;
+            z-index: -1;
+            opacity: 0;
+        }
+        
+        .deep-remove:focus-within .remove-option {
+            opacity: 1;
+            z-index: 1;
+        }
+        
         .editbox:focus {
             position: static;
             height: 100%;
@@ -84,7 +95,7 @@
                         </div>
                         <div class="card text-center">
                             <ul class="list-group list-group-flush text-left" id="todoList">
-                                <li v-for='item of showList' class="list-group-item">
+                                <li v-for='item of showList' class="list-group-item" :key='item.id'>
                                     <div class="d-flex task">
                                         <div class="form-check">
                                             <div>
@@ -94,8 +105,17 @@
                                             </div>
                                         </div>
                                         <button type="button" class="btn-outline-secondary btn-sm ms-3 py-0 mb-1 subtask" @click.stop='addSub(item.id)'>subtask</button>
-                                        <button type="button" class="btn-close ms-auto remove">
+                                        <button v-show='item.childs.length === 0' type="button" class="btn-close ms-auto remove" @click='remove(item.id)'>
                                         </button>
+                                        <div v-show='item.childs.length !== 0' class="ms-auto col-6 row deep-remove">
+                                            <div class="col-10">
+                                                <div class="input-group remove-option">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm col-7" @click='remove(item.id,"collapse")'>單獨刪</button>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm col-5" @click='remove(item.id,"all")'>全刪</button>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="col-2 btn-close"></button>
+                                        </div>
                                     </div>
                                     <ul v-for='child of item.childs' class="list-group list-group-flush">
                                         <li class="list-group-item list-group-item-secondary">
@@ -107,7 +127,7 @@
                                                         <label :for="child.id">{{child.task}}</label>
                                                     </div>
                                                 </div>
-                                                <button type="button" class="btn-close ms-auto remove">
+                                                <button type="button" class="btn-close ms-auto remove" @click='remove(child.id)'>
                                                 </button>
                                             </div>
                                         </li>
@@ -160,7 +180,8 @@
                         id: idcount,
                         task: val,
                         status: false,
-                        parentId: parentId
+                        parentId: parentId,
+                        childs: []
                     }
                     idcount++;
                     return obj;
@@ -187,6 +208,20 @@
                     this.todoList.push(controller.add('subtask', id));
                     console.log(this.todoList);
                 },
+                remove(id, option) {
+                    let checkitem = this.todoList.find(el => el.id === id);
+                    if (checkitem.childs.length !== 0 && option === 'all') {
+                        checkitem.childs.forEach(el => {
+                            this.remove(el.id);
+                        });
+                    }
+                    this.todoList.splice(this.todoList.findIndex(el => el.id === id), 1);
+                    if (checkitem.childs.length !== 0 && option === 'collapse') {
+                        checkitem.childs.forEach(el => {
+                            el.parentId = undefined;
+                        })
+                    }
+                },
                 tempsave(id, task) {
                     // if(this.temp.id !== undefined && this.temp.id === id)return;
                     console.log('tempsave');
@@ -208,9 +243,6 @@
                     let view = [...this.todoList];
                     let child = view.filter(el => el.parentId !== undefined); //el = element
                     let parent = view.filter(el => el.parentId === undefined);
-                    parent.forEach(el => {
-                        el.childs = [];
-                    })
                     let combine = parent.map(el => {
                         el.childs = child.filter(item => item.parentId === el.id)
                         return el;
