@@ -99,7 +99,7 @@
                                     <div class="d-flex task">
                                         <div class="form-check">
                                             <div>
-                                                <input id="check" type="checkbox" class="form-check-input" v-model='item.status'>
+                                                <input id="check" type="checkbox" class="form-check-input" v-model='item.status' @change='save2Storage'>
                                                 <input :id="item.id" type="text" class="editbox" v-model="item.task" @click='tempsave(item.id,item.task)' @blur='taskcheck(item.id)'>
                                                 <label :for="item.id">{{item.task}}</label>
                                             </div>
@@ -110,8 +110,8 @@
                                         <div v-show='item.childs.length !== 0' class="ms-auto col-6 row deep-remove">
                                             <div class="col-10">
                                                 <div class="input-group remove-option">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm col-7" @click='remove(item.id,"collapse")'>單獨刪</button>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm col-5" @click='remove(item.id,"all")'>全刪</button>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm col-7" @click='remove(item.id,"single")'>單獨刪</button>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm col-5" @click='remove(item.id,"group")'>全刪</button>
                                                 </div>
                                             </div>
                                             <button type="button" class="col-2 btn-close"></button>
@@ -122,7 +122,7 @@
                                             <div class="d-flex">
                                                 <div class="form-check">
                                                     <div>
-                                                        <input id="check" type="checkbox" class="form-check-input" v-model='child.status'>
+                                                        <input id="check" type="checkbox" class="form-check-input" v-model='child.status' @change='save2Storage'>
                                                         <input :id="child.id" type="text" class="editbox" v-model="child.task" @click='tempsave(child.id,child.task)' @blur='taskcheck(child.id)'>
                                                         <label :for="child.id">{{child.task}}</label>
                                                     </div>
@@ -133,18 +133,6 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li class="list-group-item">
-                                    <div class="d-flex">
-                                        <div class="form-check">
-                                            <div>
-                                                <input id="b" type="checkbox" class="form-check-input" checked>
-                                                <label for="b" class="completed">已完成 代辦事項</label>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn-close ms-auto remove">
-                                        </button>
-                                    </div>
-                                </li>
                                 <!-- <li class="list-group-item">
                                     <div class="d-flex">
                                         <div class="form-check">
@@ -154,12 +142,12 @@
                                 </li> -->
                             </ul>
                             <div class="card-footer d-flex justify-content-between">
-                                <span>有 <span id="taskCount">{{todoList.length}}</span> 筆任務 ({{todoList.length - showList.length}} 副任務)</span>
+                                <span>有 <span id="taskCount">{{showList.length}}</span> 筆任務</span>
                                 <div>
-                                    <a href="#" class="me-3">全部</a>
-                                    <a href="#" class="me-3">未完成</a>
-                                    <a href="#" class="me-3">已完成</a>
-                                    <a href="#">清除所有任務</a>
+                                    <a href="#" class="me-3" @click='showStatus = "all"'>全部</a>
+                                    <a href="#" class="me-3" @click='showStatus = "doing"'>未完成</a>
+                                    <a href="#" class="me-3" @click='showStatus = "done"'>已完成</a>
+                                    <a href="#" @click='allRemove'>清除所有任務</a>
                                 </div>
                             </div>
                         </div>
@@ -181,50 +169,99 @@
                         task: val,
                         status: false,
                         parentId: parentId,
-                        childs: []
+                        childs: [],
                     }
                     idcount++;
                     return obj;
+                },
+                getChilds(arr) {
+                    // const temp = JSON.parse(JSON.stringify(arr)); 拷貝不可行 真的靠北
+                    const temp = [...arr];
+                    return temp.filter(el => el.parentId !== undefined);
+                },
+                getParent(arr) {
+                    const temp = [...arr];
+                    return temp.filter(el => el.parentId === -1);
+                },
+                all(parent, child) {
+                    let results = parent.map(el => {
+                        el.childs = child.filter(item => item.parentId === el.id);
+                        return el;
+                    });
+                    return results;
+                },
+                done(parent, child) {
+                    let results = parent.map(el => {
+                        el.childs = child.filter(item => item.parentId === el.id && item.status === true);
+                        if (el.childs.length === 0 && el.status === false) return 'delete';
+                        return el;
+                    });
+                    while (results.findIndex(el => el === 'delete') !== -1) {
+                        results.splice(results.findIndex(el => el === 'delete'), 1);
+                    };
+                    console.log(results);
+                    return results;
+                },
+                doing(parent, child) {
+                    let results = parent.map(el => {
+                        el.childs = child.filter(item => item.parentId === el.id && item.status === false);
+                        if (el.childs.length === 0 && el.status === true) return 'delete';
+                        return el;
+                    });
+                    while (results.findIndex(el => el === 'delete') !== -1) {
+                        results.splice(results.findIndex(el => el === 'delete'), 1);
+                    };
+                    console.log(results);
+                    return results;
+                },
+                resetidcount() {
+                    idcount = 0;
+                },
+                setlastidcount(lastid) {
+                    idcount = lastid;
                 }
             }
         }
-        let controller = lib();
+        let model = lib();
         Vue.createApp({
             data() {
                 return {
                     newTodo: '',
                     todoList: [],
                     temp: {},
+                    showStatus: ''
                 }
             },
             methods: {
                 add() {
                     if (this.newTodo.length === 0) return;
-                    this.todoList.push(controller.add(this.newTodo));
+                    this.todoList.push(model.add(this.newTodo, -1));
                     this.newTodo = '';
-                    console.log(this.todoList);
+                    this.save2Storage();
                 },
                 addSub(id) {
-                    this.todoList.push(controller.add('subtask', id));
-                    console.log(this.todoList);
+                    this.todoList.push(model.add('subtask', id));
+                    this.save2Storage();
                 },
                 remove(id, option) {
-                    let checkitem = this.todoList.find(el => el.id === id);
-                    if (checkitem.childs.length !== 0 && option === 'all') {
-                        checkitem.childs.forEach(el => {
-                            this.remove(el.id);
+                    let checkitem = [];
+                    if (option === 'group') {
+                        checkitem = this.todoList.filter(el => el.parentId === id);
+                        checkitem.forEach(el => {
+                            this.todoList.splice(this.todoList.findIndex(item => item.id === el.id), 1);
                         });
                     }
                     this.todoList.splice(this.todoList.findIndex(el => el.id === id), 1);
-                    if (checkitem.childs.length !== 0 && option === 'collapse') {
-                        checkitem.childs.forEach(el => {
-                            el.parentId = undefined;
+                    if (option === 'single') {
+                        checkitem = this.todoList.filter(el => el.parentId === id)
+                        checkitem.forEach(el => {
+                            el.parentId = -1;
                         })
                     }
+                    this.save2Storage();
                 },
                 tempsave(id, task) {
                     // if(this.temp.id !== undefined && this.temp.id === id)return;
-                    console.log('tempsave');
                     this.temp = {
                         id: id,
                         task: task
@@ -232,24 +269,44 @@
                     console.log(this.temp);
                 },
                 taskcheck(id) {
-                    console.log('taskcheck');
                     let checkitem = this.todoList.find(el => el.id === id);
-                    console.log('currtask：', checkitem.task);
                     if (checkitem.task === '') this.todoList.find(el => el.id === id).task = this.temp.task;
+                    this.save2Storage();
+                },
+                getStorage() {
+                    if (localStorage.getItem('list')) {
+                        try {
+                            this.todoList = JSON.parse(localStorage.getItem('list'));
+                            let lastid = this.todoList.reduce((acc, curr) => {
+                                return acc > curr.id ? acc : curr.id;
+                            }, 0)
+                            console.log('lastid:', lastid);
+                            model.setlastidcount(lastid + 1);
+                        } catch (error) {
+                            console.log('localStorage fetch fail:', error);
+                        }
+                    }
+                },
+                save2Storage() {
+                    let parsed = JSON.stringify(this.todoList);
+                    localStorage.setItem('list', parsed);
+                    console.log('save！');
+                },
+                allRemove() {
+                    if (window.confirm('確定全部刪除？')) this.todoList = [];
                 }
             },
             computed: {
                 showList() {
-                    let view = [...this.todoList];
-                    let child = view.filter(el => el.parentId !== undefined); //el = element
-                    let parent = view.filter(el => el.parentId === undefined);
-                    let combine = parent.map(el => {
-                        el.childs = child.filter(item => item.parentId === el.id)
-                        return el;
-                    })
-                    console.log(combine);
-                    return combine;
+                    let child = model.getChilds(this.todoList);
+                    let parent = model.getParent(this.todoList);
+                    let sortArray = model[this.showStatus || 'all'](parent, child);
+                    return sortArray.reverse();
                 }
+            },
+            mounted() {
+                this.getStorage();
+                this.showStatus = 'all';
             }
         }).mount('#app');
     </script>
