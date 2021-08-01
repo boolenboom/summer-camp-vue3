@@ -69,12 +69,13 @@
             <div class="align-self-center justify-content-center">
                 <div class="row justify-content-center">
                     <div class="pomodoro text-center">
-                        <div class="title my-5">Pomodoro</div>
-                        <select name="version" id="version" class="justify-content-center" v-model=roundsetting>
-                            <option value="45/15">45 m / 15 m</option>
-                            <option value="50/10">50 m / 10 m</option>
-                            <option value="25/5">25 m / 5 m</option>
-                            <option value="0.05/0.1">3 s / 2 s</option>
+                        <div class="title my-5">Pomodoro #{{timer.roundCount}}</div>
+                        <select name="version" id="version" class="justify-content-center" v-model='roundsetting' :disabled='timer.status === "run"'>
+                            <option value="2700/900">45 m / 15 m</option>
+                            <option value="3000/600">50 m / 10 m</option>
+                            <option value="1500/300">25 m / 5 m</option>
+                            <option value="10/6">10 s / 6 s</option>
+                            <option value="3/2">3 s / 2 s</option>
                         </select>
                         <div class="timer">
                             <h1>{{showTime.min}}：{{showTime.sec}}</h1>
@@ -140,6 +141,7 @@
                                     <a href="#" class="me-3" @click='showStatus = "all"'>全部</a>
                                     <a href="#" class="me-3" @click='showStatus = "doing"'>未完成</a>
                                     <a href="#" class="me-3" @click='showStatus = "done"'>已完成</a>
+                                    <!-- <a href="#" class="me-3" @click='showStatus = "timeLine"'>時間軸</a> -->
                                     <a href="#" @click='allRemove'>清除所有任務</a>
                                 </div>
                             </div>
@@ -154,7 +156,7 @@
     <script>
         {
             // const timer = function() {
-            //     let initialTime = 0,
+            //     let initial = 0,
             //         time = 0;
             //     let counter = '0';
             //     let status = '';
@@ -167,7 +169,7 @@
             //         },
             //         setTime(val) {
             //             if (typeof val !== 'number' || val === NaN) return;
-            //             initialTime = val;
+            //             initial = val;
             //             time = val;
             //         },
             //         start() {
@@ -178,7 +180,7 @@
             //         },
             //         reset() {
             //             clearInterval(counter);
-            //             time = initialTime;
+            //             time = initial;
             //             counter = '0';
             //         }
             //     }
@@ -257,13 +259,18 @@
                     showStatus: '',
                     timer: {
                         status: '',
-                        initialTime: 0,
+                        initial: {
+                            rush: 0,
+                            break: 0,
+                            isRush: true,
+                        },
                         time: 0,
                         counter: '0',
                         min: 0,
                         sec: 0,
+                        roundCount: 0,
                     },
-                    roundsetting: '45/15',
+                    roundsetting: '10/6',
                 }
             },
             methods: {
@@ -335,11 +342,23 @@
                 },
                 countdown() {
                     this.timer.time--;
+                    if (this.timer.time < 0) {
+                        console.log('timeout, switch');
+                        this.toggleRush();
+                    }
                 },
-                setTime(val) {
-                    if (typeof val !== 'number' || val === NaN) return;
-                    this.timer.initialTime = val;
-                    this.timer.time = val;
+                toggleRush() {
+                    this.timer.initial.isRush = !this.timer.initial.isRush;
+                    if (this.timer.initial.isRush) this.timer.roundCount++;
+                    this.reset();
+                    this.start();
+                },
+                setTime(rushTime, breakTime) {
+                    if ((typeof rushTime !== 'number' || rushTime === NaN) ||
+                        (typeof breakTime !== 'number' || breakTime === NaN)) return;
+                    this.timer.initial.rush = rushTime;
+                    this.timer.initial.break = breakTime;
+                    this.timer.time = rushTime;
                     this.timer.status = 'pause';
                 },
                 start() {
@@ -352,7 +371,7 @@
                 },
                 reset() {
                     clearInterval(this.timer.counter);
-                    this.timer.time = this.timer.initialTime;
+                    this.timer.time = this.timer.initial.isRush ? this.timer.initial.rush : this.timer.initial.break;
                     this.timer.counter = '0';
                     this.timer.status = 'pause';
                 }
@@ -366,15 +385,24 @@
                 },
                 showTime() {
                     return {
-                        min: Math.floor(this.timer.time / 60),
+                        min: Math.floor(this.timer.time / 60).toString().length > 1 ? Math.floor(this.timer.time / 60) : '0' + Math.floor(this.timer.time / 60),
                         sec: (this.timer.time % 60).toString().length > 1 ? this.timer.time % 60 : '0' + this.timer.time % 60,
                     };
                 },
             },
+            watch: {
+                roundsetting(newVal) {
+                    if (this.timer.status !== 'pause') return;
+                    let split = newVal.split('/').map(el => Number(el) * 1);
+                    console.log(split);
+                    this.pause();
+                    this.setTime(split[0], split[1]);
+                }
+            },
             mounted() {
                 this.getStorage();
                 this.showStatus = 'all';
-                this.setTime(45 * 60);
+                this.setTime(10, 6);
             },
             beforeDestroy() {
                 this.reset();
